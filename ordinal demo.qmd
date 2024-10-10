@@ -1,0 +1,85 @@
+---
+title: "ordinal logistic regression model demo"
+date: today
+author: 高嘉妤
+format:
+ pdf:
+    engine: xelatex
+    include-in-header:
+      - text: |
+         \usepackage{setspace,relsize}
+         \usepackage{xeCJK}
+         \setmainfont{Times New Roman}
+         \setCJKmainfont{標楷體}
+         \usepackage{geometry}
+         \geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
+toc: true
+documentclass: article
+---
+## read data
+
+```{r}
+#| output: asis
+#| warning: FALSE
+library(table1)
+#grouped data file
+Polviews <- read.table("http://www.stat.ufl.edu/~aa/cat/data/Polviews.dat",header=TRUE)
+#ungrouped data file
+Polviews2 <- read.table("http://www.stat.ufl.edu/~aa/cat/data/Polviews2.dat",header=TRUE)
+table1(~gender+party|ideology,data=Polviews2)
+```
+
+## cumulative logit model
+```{r}
+#| output: TRUE
+library(VGAM)
+fit <- vglm(cbind(y1,y2,y3,y4,y5)~party+gender,family=cumulative(parallel=TRUE),data=Polviews)
+summary(fit)
+```
+
+For any fixed j, the estimated odds that a Republician’s response is in the liberal direction rather than the conservation direction equal exp(β1) = exp(-3.634) = 0.0026 times the estimated odds for Democrats.
+In other words, The estimated odds that a Republician’s response is in the conservative direction rather than the liberal direction equal exp(-β1) = exp(3.634) = 37.9 times the estimated odds for Democrats.
+We can conclude that strong Republicans tend to be much more conservative than strong Democrats.
+
+```{r}
+#| output: TRUE
+attach(Polviews)
+gendername <- c("female","male","female","male")
+partyname <- c("dem","rep","dem","rep")
+data.frame(gendername,partyname,fitted(fit))
+```
+The data frame can help us to understand the effects of the explanatory variables. For each political party affiliation, the estimated distributions are very similar for females and males. The most common response is 'slightly liberal' for Democrats, who are very likely to be in category 3 or below, and 'slightly conseervative' for Republicans, who are very likely to be in category 4 or 5.
+
+## cumulative logit model without proportional odds
+```{r}
+#| output: TRUE
+fit2 <- vglm(cbind(y1,y2,y3,y4,y5)~party+gender,family=cumulative,data=Polviews)
+summary(fit2)
+```
+The data frame can help us to understand the effects of the explanatory variables. For each political party affiliation, the estimated distributions are very similar for females and males. The most common response is 'slightly liberal' for Democrats, who are very likely to be in category 3 or below, and 'slightly conseervative' for Republicans, who are very likely to be in category 4 or 5.
+
+## cumulative logit model without proportional odds
+```{r}
+#| output: TRUE
+fit2 <- vglm(cbind(y1,y2,y3,y4,y5)~party+gender,family=cumulative,data=Polviews)
+summary(fit2)
+```
+
+The political party estimate of β1hat = 2.03 means that for the normal latent variable model, with higher y* values representing greater convervatism, the estimated mean political ideology for Republicans is 2.03 higher than the estimated mean for Democrats. This difference is relative to a residual standard deviation of 1.0 for the normal latent response. With an arbitary standard deviation, we estimate that the two groups have means that differ by 2.03 standard deviations, This is an extremely large effect.
+
+## Adjacent-Categories logits
+
+```{r}
+#| output: TRUE
+fit_acat <- vglm(cbind(y1,y2,y3,y4,y5)~party+gender,family=acat(parallel=TRUE,reverse=TRUE),data=Polviews)
+summary(fit_acat)
+```
+The estimated odds that a Democrats's political ideology is in category j instead of j+1 are exp(-β1)=9.34 times the estimated odds for Republicans.
+
+## sequential logits
+```{r}
+#| output: TRUE
+fit_sratio <- vglm(cbind(y1,y2,y3,y4,y5)~party+gender,family=sratio(parallel=TRUE),data=Polviews)  
+summary(fit_sratio)
+```
+For any fixed j, the estimated odds that a Republican's response is in category j rather than higher categories is exp(β1)=0.052 times the estimated odds for Democrats.
