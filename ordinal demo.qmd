@@ -44,7 +44,7 @@ We can conclude that strong Republicans tend to be much more conservative than s
 ```{r}
 #| output: TRUE
 attach(Polviews)
-gendername <- c("female","male","female","male")
+gendername <- c("female","female","male","male")
 partyname <- c("dem","rep","dem","rep")
 data.frame(gendername,partyname,fitted(fit))
 ```
